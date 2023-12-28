@@ -1,6 +1,7 @@
 import { Server } from 'socket.io'
 import { Redis } from 'ioredis';
 import prismaClient from './prisma';
+import kafka, { produceMessage } from './kafka';
 
 
 // every server has two redis connections, one for publishing , one for subscribing
@@ -51,20 +52,14 @@ class SocketService {
               });
         });
 
-        // whenever any server publishes to the redis, every server (subscribers) listen to the message and propagate it to 
+        // whenever any server publishes to the redis, every server (subscribers) listen to the message and propagate it to clients
         sub.on('message', async (channel, message) => {
             if (channel === "MESSAGES") {
-                console.log(`Received a message from server`)
                 console.log(`Broadcasting message to all clients...`)
-                this.io.emit('message', message);   // emit broadcasts to all clients connected to this server
+                this.io.emit('message', message);   // broadcasts to all clients connected to this server
 
-                // store in db
-                await prismaClient.message.create({
-                    data: {
-                        text: message,
-                    }
-                })
-                console.log(`Message stored on potsgres`)
+                await produceMessage(message);
+                console.log(`Message produced to Kafka Broker`)
             }
         })
     }
