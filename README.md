@@ -1,3 +1,7 @@
+# Notes
+Whenever you update your Prisma schema, you will have to update your database schema using either `prisma migrate dev` or `prisma db push`. This will keep your database schema in sync with your Prisma schema. The commands will also regenerate Prisma Client.
+
+
 # Turborepo starter
 
 This is an official starter Turborepo.
